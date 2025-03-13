@@ -2,7 +2,7 @@ import { app, shell, BrowserWindow, ipcMain, screen } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
-import { spawn, exec } from 'child_process'
+import { spawn } from 'child_process'
 import { execSync } from 'child_process'
 
 let windows: BrowserWindow[] = [];
