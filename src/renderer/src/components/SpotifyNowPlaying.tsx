@@ -38,8 +38,8 @@ export function SpotifyNowPlaying(): JSX.Element {
     // Fetch Spotify data when component mounts
     fetchSpotifyData();
 
-    // Set up interval to refresh Spotify data every 5 seconds
-    const intervalId = setInterval(fetchSpotifyData, 5000);
+    // Set up interval to refresh Spotify data every 2 seconds
+    const intervalId = setInterval(fetchSpotifyData, 2000);
 
     // Add listener for refresh events
     const refreshListener = () => {

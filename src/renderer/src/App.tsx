@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button"
 import { useEffect, useState } from "react"
 import { SpotifyNowPlaying } from "@/components/SpotifyNowPlaying"
+import { Clock } from "@/components/Clock"
 
 interface Workspace {
   workspace: string;
@@ -164,13 +165,7 @@ function App(): JSX.Element {
           )}
           <div className="ml-auto flex items-center gap-x-2">
             <SpotifyNowPlaying />
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={fetchWorkspaces}
-            >
-              Refresh
-            </Button>
+            <Clock />
           </div>
         </>
       )}
