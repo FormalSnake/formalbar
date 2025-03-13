@@ -3,6 +3,7 @@ import { useEffect, useState } from "react"
 import { SpotifyNowPlaying } from "@/components/SpotifyNowPlaying"
 import { Clock } from "@/components/Clock"
 import { BatteryIndicator } from "@/components/Battery"
+import { WiFiIndicator } from "@/components/WiFi"
 
 interface Workspace {
   workspace: string;
@@ -172,6 +173,7 @@ function App(): JSX.Element {
           {/* Right section */}
           <div className="ml-auto flex items-center gap-x-2">
             <SpotifyNowPlaying />
+            <WiFiIndicator />
             <BatteryIndicator />
           </div>
         </>

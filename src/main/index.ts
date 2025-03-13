@@ -149,6 +149,45 @@ app.whenReady().then(() => {
     }
   });
 
+  ipcMain.handle('get-wifi-status', async () => {
+    try {
+      // Check if WiFi is connected
+      const airportInfo = execSync('/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport -I').toString();
+      
+      // If we get here, WiFi is connected
+      if (airportInfo.includes('AirPort: Off') || !airportInfo.includes('SSID:')) {
+        return { status: 'disconnected' };
+      }
+      
+      // Check internet connectivity
+      try {
+        execSync('ping -c 1 -W 1 8.8.8.8');
+      } catch (e) {
+        return { status: 'no-internet' };
+      }
+      
+      // Get signal strength
+      const signalMatch = airportInfo.match(/agrCtlRSSI: (-\d+)/);
+      if (signalMatch && signalMatch[1]) {
+        const signalStrength = parseInt(signalMatch[1], 10);
+        
+        // RSSI values typically range from -30 (very strong) to -90 (very weak)
+        if (signalStrength >= -50) {
+          return { status: 'high' };
+        } else if (signalStrength >= -70) {
+          return { status: 'medium' };
+        } else {
+          return { status: 'low' };
+        }
+      }
+      
+      return { status: 'medium' }; // Default if we can't determine strength
+    } catch (error) {
+      console.error("Error getting WiFi data:", error);
+      return { status: 'disconnected' }; // Fallback
+    }
+  });
+
   // This won't work because we need to send to renderer processes
   // ipcMain.emit('refresh-data');
 
