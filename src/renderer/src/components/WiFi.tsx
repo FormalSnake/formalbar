@@ -9,7 +9,6 @@ export function WiFiIndicator(): JSX.Element {
     const updateWiFiStatus = async (): Promise<void> => {
       try {
         const result = await window.electron.ipcRenderer.invoke('get-wifi-status');
-        console.log("WiFi status result:", result);
         if (result && typeof result.status === 'string') {
           setWifiStatus(result.status);
         }
@@ -21,21 +20,20 @@ export function WiFiIndicator(): JSX.Element {
       }
     };
 
-    // Update immediately and then every 10 seconds (more frequent for debugging)
+    // Update immediately and then every 30 seconds
     updateWiFiStatus();
-    const intervalId = setInterval(updateWiFiStatus, 10000);
+    const intervalId = setInterval(updateWiFiStatus, 30000);
 
     return () => clearInterval(intervalId);
   }, []);
 
   // If WiFi info isn't available yet
   if (loading) {
-    return <div className="text-xs font-medium px-1.5">Loading...</div>;
+    return <div className="text-xs font-medium px-1.5"></div>;
   }
 
   // Choose the appropriate WiFi icon based on status
   const getWiFiIcon = () => {
-    console.log("Current WiFi status:", wifiStatus);
     switch (wifiStatus) {
       case "high":
         return <Signal className="h-4 w-4" />;
@@ -54,7 +52,6 @@ export function WiFiIndicator(): JSX.Element {
   return (
     <div className="text-xs font-medium px-1.5 flex items-center gap-1">
       {getWiFiIcon()}
-      <span className="text-xs">{wifiStatus}</span>
     </div>
   );
 }

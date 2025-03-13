@@ -151,14 +151,14 @@ app.whenReady().then(() => {
 
   ipcMain.handle('get-wifi-status', async () => {
     try {
-      // Check if WiFi is connected
-      const airportInfo = execSync('/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport -I').toString();
+      // Check if network interfaces are up and have an IP
+      const networkSetup = execSync('networksetup -listallhardwareports').toString();
+      const ifconfigOutput = execSync('ifconfig en0').toString();
       
-      // Debug output
-      console.log("WiFi info:", airportInfo);
+      console.log("Network interfaces:", networkSetup);
       
-      // If airport command returns error or shows WiFi is off
-      if (airportInfo.includes('AirPort: Off') || !airportInfo.includes('SSID:')) {
+      // Check if WiFi is enabled and connected
+      if (!ifconfigOutput.includes('status: active')) {
         console.log("WiFi is disconnected");
         return { status: 'disconnected' };
       }
@@ -172,23 +172,36 @@ app.whenReady().then(() => {
         return { status: 'no-internet' };
       }
       
-      // Get signal strength
-      const signalMatch = airportInfo.match(/agrCtlRSSI: (-\d+)/);
-      if (signalMatch && signalMatch[1]) {
-        const signalStrength = parseInt(signalMatch[1], 10);
-        console.log("WiFi signal strength:", signalStrength);
+      // Use networksetup to get WiFi info
+      try {
+        // Get current WiFi network
+        const currentNetwork = execSync('networksetup -getairportnetwork en0').toString();
+        console.log("Current network:", currentNetwork);
         
-        // RSSI values typically range from -30 (very strong) to -90 (very weak)
-        if (signalStrength >= -50) {
-          return { status: 'high' };
-        } else if (signalStrength >= -70) {
-          return { status: 'medium' };
-        } else {
-          return { status: 'low' };
+        // Get signal strength using a more reliable method
+        // We'll use ping response time as a proxy for signal quality
+        const pingResult = execSync('ping -c 3 -q 8.8.8.8').toString();
+        const avgTimeMatch = pingResult.match(/min\/avg\/max\/stddev = [\d.]+\/([\d.]+)/);
+        
+        if (avgTimeMatch && avgTimeMatch[1]) {
+          const avgTime = parseFloat(avgTimeMatch[1]);
+          console.log("Ping average time:", avgTime);
+          
+          // Use ping time as a proxy for signal strength
+          if (avgTime < 20) {
+            return { status: 'high' };
+          } else if (avgTime < 100) {
+            return { status: 'medium' };
+          } else {
+            return { status: 'low' };
+          }
         }
+      } catch (e) {
+        console.log("Error getting detailed WiFi info:", e);
       }
       
-      return { status: 'medium' }; // Default if we can't determine strength
+      // Default to medium if we can't determine strength
+      return { status: 'medium' };
     } catch (error) {
       console.error("Error getting WiFi data:", error);
       return { status: 'disconnected' }; // Fallback
