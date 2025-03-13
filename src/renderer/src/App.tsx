@@ -137,17 +137,21 @@ function App(): JSX.Element {
               <Button
                 size="sm"
                 variant="outline"
-                className="min-w-8 max-w-[300px] font-medium overflow-hidden group relative"
+                className="min-w-8 max-w-[300px] font-medium group relative"
                 onClick={() => window.electron.ipcRenderer.invoke('switch-window', activeWindow[0].windowId)}
                 title={activeWindow[0].appName + " / " + activeWindow[0].windowTitle}
               >
-                <span className="truncate block">
-                  {activeWindow[0].appName + " / " + activeWindow[0].windowTitle}
-                </span>
-                <span className="absolute left-0 whitespace-nowrap opacity-0 group-hover:opacity-100 group-hover:animate-marquee">
-                  {activeWindow[0].appName + " / " + activeWindow[0].windowTitle + " • " + 
-                   activeWindow[0].appName + " / " + activeWindow[0].windowTitle}
-                </span>
+                <div className="overflow-hidden w-full">
+                  <span className="truncate block group-hover:hidden">
+                    {activeWindow[0].appName + " / " + activeWindow[0].windowTitle}
+                  </span>
+                  <div className="hidden group-hover:block overflow-hidden">
+                    <span className="inline-block whitespace-nowrap animate-marquee">
+                      {activeWindow[0].appName + " / " + activeWindow[0].windowTitle + " • " + 
+                      activeWindow[0].appName + " / " + activeWindow[0].windowTitle}
+                    </span>
+                  </div>
+                </div>
               </Button>
             )
           }
