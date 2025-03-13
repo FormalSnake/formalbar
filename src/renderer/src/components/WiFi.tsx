@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Wifi, WifiOff, WifiLow, WifiMedium, WifiZero } from "lucide-react";
+import { Wifi, WifiOff, WifiLow, WifiHigh, WifiZero } from "lucide-react";
 
 export function WiFiIndicator(): JSX.Element {
   const [wifiStatus, setWifiStatus] = useState<string | null>(null);
@@ -38,7 +38,7 @@ export function WiFiIndicator(): JSX.Element {
       case "high":
         return <Wifi className="h-4 w-4" />;
       case "medium":
-        return <WifiMedium className="h-4 w-4" />;
+        return <WifiHigh className="h-4 w-4" />;
       case "low":
         return <WifiLow className="h-4 w-4" />;
       case "no-internet":
