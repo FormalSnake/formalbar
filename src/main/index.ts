@@ -135,50 +135,17 @@ app.whenReady().then(() => {
 
   ipcMain.handle('get-battery-status', async () => {
     try {
-      // For macOS, use AppleScript to get battery info
-      const script = `
-        use framework "Foundation"
-        use framework "IOKit"
-        use scripting additions
-
-        set batteryInfo to current application's NSProcessInfo's processInfo()'s systemUptime()
-        
-        set powerInfo to current application's IOPSCopyPowerSourcesInfo()
-        set powerSources to current application's IOPSCopyPowerSourcesList(powerInfo)
-        
-        set batteryData to {}
-        
-        repeat with i from 1 to count of powerSources
-            set powerSource to item i of powerSources
-            set powerSourceInfo to current application's IOPSGetPowerSourceDescription(powerInfo, powerSource)
-            
-            if powerSourceInfo's current application's kIOPSTypeKey as string is "InternalBattery" then
-                set end of batteryData to {|level|:(powerSourceInfo's current application's kIOPSCurrentCapacityKey as number) / (powerSourceInfo's current application's kIOPSMaxCapacityKey as number) * 100, |charging|:(powerSourceInfo's current application's kIOPSPowerSourceStateKey as string is "AC Power")}
-            end if
-        end repeat
-        
-        return batteryData
-      `;
+      // Simple command to get battery percentage
+      const result = execSync(`pmset -g batt | grep -Eo "\\d+%" | cut -d% -f1`).toString().trim();
+      const level = parseInt(result, 10);
       
-      const result = execSync(`osascript -e '${script}'`).toString().trim();
-      
-      try {
-        // Parse the result - AppleScript returns a list that looks like {{level:85, charging:false}}
-        const match = result.match(/\{level:(\d+(?:\.\d+)?), charging:(true|false)\}/);
-        if (match) {
-          return {
-            level: parseFloat(match[1]),
-            charging: match[2] === 'true'
-          };
-        }
-        return { level: 100, charging: true }; // Fallback
-      } catch (e) {
-        console.error("Failed to parse battery data:", result, e);
-        return { level: 100, charging: true }; // Fallback
+      if (!isNaN(level)) {
+        return { level };
       }
+      return { level: 100 }; // Fallback
     } catch (error) {
       console.error("Error getting battery data:", error);
-      return { level: 100, charging: true }; // Fallback
+      return { level: 100 }; // Fallback
     }
   });
 

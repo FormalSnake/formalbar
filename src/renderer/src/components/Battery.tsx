@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
-import { Battery, BatteryFull, BatteryMedium, BatteryLow, BatteryWarning } from "lucide-react";
+import { BatteryFull, BatteryMedium, BatteryLow, BatteryWarning } from "lucide-react";
 
 export function BatteryIndicator(): JSX.Element {
   const [batteryLevel, setBatteryLevel] = useState<number | null>(null);
-  const [charging, setCharging] = useState<boolean>(false);
 
   useEffect(() => {
     const updateBatteryStatus = async (): Promise<void> => {
@@ -11,7 +10,6 @@ export function BatteryIndicator(): JSX.Element {
         const result = await window.electron.ipcRenderer.invoke('get-battery-status');
         if (result && typeof result.level === 'number') {
           setBatteryLevel(result.level);
-          setCharging(result.charging || false);
         }
       } catch (err) {
         console.error("Error fetching battery status:", err);
@@ -46,7 +44,7 @@ export function BatteryIndicator(): JSX.Element {
   return (
     <div className="text-xs font-medium px-1.5 flex items-center gap-1">
       {getBatteryIcon()}
-      <span>{Math.round(batteryLevel)}%</span>
+      <span>{batteryLevel}%</span>
     </div>
   );
 }
