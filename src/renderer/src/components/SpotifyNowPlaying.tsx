@@ -55,20 +55,20 @@ export function SpotifyNowPlaying(): JSX.Element {
   }, []);
 
   if (loading && !track) {
-    return <div className="text-sm text-muted-foreground">Loading...</div>;
+    return <div className="text-xs text-muted-foreground">Loading...</div>;
   }
 
   if (error) {
-    return <div className="text-sm text-destructive">Spotify error</div>;
+    return <div className="text-xs text-destructive">Spotify error</div>;
   }
 
   if (!track || !track.isPlaying) {
-    return <div className="text-sm text-muted-foreground">Not playing</div>;
+    return <div className="text-xs text-muted-foreground">Not playing</div>;
   }
 
   return (
     <Button
-      size="sm"
+      size="xs"
       variant="ghost"
       className="max-w-[300px] font-medium group relative"
       onClick={() => window.electron.ipcRenderer.invoke('focus-spotify')}

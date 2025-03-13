@@ -115,22 +115,22 @@ function App(): JSX.Element {
   }, []);
 
   return (
-    <div className="flex flex-row p-1 gap-x-1 items-center h-[32px]">
+    <div className="flex flex-row p-0.5 gap-x-0.5 items-center h-[32px]">
       {loading ? (
-        <div className="text-sm">Loading workspaces...</div>
+        <div className="text-xs">Loading workspaces...</div>
       ) : error ? (
-        <div className="flex flex-row gap-x-2 items-center">
-          <div className="text-sm text-red-500">{error}</div>
-          <Button size="sm" variant="outline" onClick={fetchWorkspaces}>Retry</Button>
+        <div className="flex flex-row gap-x-1 items-center">
+          <div className="text-xs text-red-500">{error}</div>
+          <Button size="xs" variant="outline" onClick={fetchWorkspaces}>Retry</Button>
         </div>
       ) : (
         <>
           {workspaces.map((ws) => (
             <Button
               key={ws.workspace}
-              size="sm"
+              size="xs"
               variant={activeSpace[0].workspace === ws.workspace ? "default" : "outline"}
-              className="min-w-8 font-medium"
+              className="min-w-6 font-medium"
               onClick={() => switchWorkspace(ws)}
             >
               {ws.workspace}
@@ -140,9 +140,9 @@ function App(): JSX.Element {
             activeWindow.length > 0 &&
             (
               <Button
-                size="sm"
+                size="xs"
                 variant="outline"
-                className="min-w-8 max-w-[300px] font-medium group relative"
+                className="min-w-6 max-w-[300px] font-medium group relative"
                 onClick={() => window.electron.ipcRenderer.invoke('switch-window', activeWindow[0].windowId)}
                 title={activeWindow[0].appName + " / " + activeWindow[0].windowTitle}
               >
@@ -161,7 +161,7 @@ function App(): JSX.Element {
             )
           }
           {workspaces.length === 0 && (
-            <div className="text-sm">No workspaces found</div>
+            <div className="text-xs">No workspaces found</div>
           )}
           <div className="ml-auto flex items-center gap-x-2">
             <SpotifyNowPlaying />

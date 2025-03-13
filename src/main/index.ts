@@ -144,8 +144,8 @@ app.whenReady().then(() => {
 
   createWindows();
 
-  // Set up a periodic refresh (every 3 seconds)
-  setInterval(refreshAllInstances, 3000);
+  // Set up a periodic refresh (every 1 second)
+  setInterval(refreshAllInstances, 1000);
 
   app.on('activate', function() {
     if (BrowserWindow.getAllWindows().length === 0) createWindows();
@@ -166,9 +166,9 @@ function refreshAllInstances() {
 
 // Add a function to refresh data after workspace switch
 function refreshAfterAction() {
-  // Refresh immediately and then again after a short delay
+  // Refresh immediately and then again after a shorter delay
   refreshAllInstances();
-  setTimeout(() => refreshAllInstances(), 300);
+  setTimeout(() => refreshAllInstances(), 150);
 }
 
 app.on('window-all-closed', () => {

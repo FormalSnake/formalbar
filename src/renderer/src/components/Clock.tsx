@@ -21,7 +21,7 @@ export function Clock(): JSX.Element {
   }, []);
 
   return (
-    <div className="text-sm font-medium px-2">
+    <div className="text-xs font-medium px-1.5">
       {time}
     </div>
   );
