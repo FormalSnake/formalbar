@@ -163,9 +163,14 @@ function App(): JSX.Element {
           {workspaces.length === 0 && (
             <div className="text-xs">No workspaces found</div>
           )}
+          {/* Center clock */}
+          <div className="absolute left-1/2 transform -translate-x-1/2">
+            <Clock />
+          </div>
+          
+          {/* Right section */}
           <div className="ml-auto flex items-center gap-x-2">
             <SpotifyNowPlaying />
-            <Clock />
           </div>
         </>
       )}
