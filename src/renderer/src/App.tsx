@@ -23,7 +23,7 @@ function App(): JSX.Element {
   const switchWorkspace = async (workspace: Workspace) => {
     // Update UI immediately for better responsiveness
     setActiveSpace([workspace]);
-    
+
     // Then invoke the actual space switch
     await window.electron.ipcRenderer.invoke('switch-space', workspace.workspace);
   }
@@ -34,7 +34,7 @@ function App(): JSX.Element {
       if (workspaces.length === 0) {
         setLoading(true);
       }
-      
+
       setError(null);
       const result = await window.electron.ipcRenderer.invoke('get-spaces');
       const activeSpace = await window.electron.ipcRenderer.invoke('get-active-space');
@@ -84,19 +84,19 @@ function App(): JSX.Element {
 
     const refreshListener = async () => {
       console.log("Received refresh event from main process ✅");
-      
+
       try {
         // Fetch data without showing loading state
         const spaces = await window.electron.ipcRenderer.invoke('get-spaces');
         const activeSpace = await window.electron.ipcRenderer.invoke('get-active-space');
         const windowResult = await window.electron.ipcRenderer.invoke("get-active-window");
-        
+
         // Only update state if we got valid data
         if (Array.isArray(spaces)) {
           setWorkspaces(spaces);
           setActiveSpace(activeSpace);
         }
-        
+
         if (Array.isArray(windowResult)) {
           setActiveWindow(windowResult.map(normalizeWindow));
         }
@@ -115,7 +115,7 @@ function App(): JSX.Element {
   }, []);
 
   return (
-    <div className="flex flex-row p-0.5 gap-x-0.5 items-center h-[32px]">
+    <div className="flex flex-row p-0.5 px-3 gap-x-0.5 items-center h-[32px]">
       {loading ? (
         <div className="text-xs">Loading workspaces...</div>
       ) : error ? (
@@ -152,8 +152,8 @@ function App(): JSX.Element {
                   </span>
                   <div className="hidden group-hover:block overflow-hidden">
                     <span className="inline-block whitespace-nowrap animate-marquee">
-                      {activeWindow[0].appName + " / " + activeWindow[0].windowTitle + " • " + 
-                      activeWindow[0].appName + " / " + activeWindow[0].windowTitle}
+                      {activeWindow[0].appName + " / " + activeWindow[0].windowTitle + " • " +
+                        activeWindow[0].appName + " / " + activeWindow[0].windowTitle}
                     </span>
                   </div>
                 </div>
