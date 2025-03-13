@@ -154,15 +154,21 @@ app.whenReady().then(() => {
       // Check if WiFi is connected
       const airportInfo = execSync('/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport -I').toString();
       
-      // If we get here, WiFi is connected
+      // Debug output
+      console.log("WiFi info:", airportInfo);
+      
+      // If airport command returns error or shows WiFi is off
       if (airportInfo.includes('AirPort: Off') || !airportInfo.includes('SSID:')) {
+        console.log("WiFi is disconnected");
         return { status: 'disconnected' };
       }
       
       // Check internet connectivity
       try {
         execSync('ping -c 1 -W 1 8.8.8.8');
+        console.log("Internet connection is available");
       } catch (e) {
+        console.log("No internet connection");
         return { status: 'no-internet' };
       }
       
@@ -170,6 +176,7 @@ app.whenReady().then(() => {
       const signalMatch = airportInfo.match(/agrCtlRSSI: (-\d+)/);
       if (signalMatch && signalMatch[1]) {
         const signalStrength = parseInt(signalMatch[1], 10);
+        console.log("WiFi signal strength:", signalStrength);
         
         // RSSI values typically range from -30 (very strong) to -90 (very weak)
         if (signalStrength >= -50) {
