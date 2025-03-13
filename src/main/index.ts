@@ -44,7 +44,7 @@ function createWindows(): void {
     win.on('ready-to-show', () => {
       win.show();
       win.setBounds({ x, y, width, height: 32 });
-      win.setAlwaysOnTop(true, 'screen-saver');
+      win.setAlwaysOnTop(true, 'normal');
       win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
     });
 
@@ -143,7 +143,7 @@ app.whenReady().then(() => {
   }
 
   createWindows();
-  
+
   // Set up a periodic refresh (every 5 seconds)
   setInterval(refreshAllInstances, 5000);
 
@@ -253,7 +253,7 @@ function switchSpace(space: string): void {
   childProcess.stdout.on('data', (data: any) => {
     console.log(`stdout: ${data}`);
   });
-  
+
   // Refresh data after switching workspace
   refreshAfterAction();
 }
@@ -278,7 +278,7 @@ function getSpotifyTrack() {
           end if
         end tell
       `;
-      
+
       const result = execSync(`osascript -e '${script}'`).toString().trim();
       try {
         resolve(JSON.parse(result));
