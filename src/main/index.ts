@@ -3,6 +3,7 @@ import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { spawn, exec } from 'child_process'
+import { execSync } from 'child_process'
 
 let windows: BrowserWindow[] = [];
 
@@ -105,6 +106,30 @@ app.whenReady().then(() => {
     } catch (error) {
       console.error("Command failed:", error);
       return { error };
+    }
+  });
+
+  ipcMain.handle('get-spotify-track', async () => {
+    try {
+      return await getSpotifyTrack();
+    } catch (error) {
+      console.error("Spotify command failed:", error);
+      return { error: String(error) };
+    }
+  });
+
+  ipcMain.handle('focus-spotify', () => {
+    try {
+      const script = `
+        tell application "Spotify"
+          activate
+        end tell
+      `;
+      execSync(`osascript -e '${script}'`);
+      return { success: true };
+    } catch (error) {
+      console.error("Failed to focus Spotify:", error);
+      return { error: String(error) };
     }
   });
 
@@ -231,5 +256,40 @@ function switchSpace(space: string): void {
   
   // Refresh data after switching workspace
   refreshAfterAction();
+}
+
+function getSpotifyTrack() {
+  return new Promise((resolve) => {
+    try {
+      // AppleScript to get Spotify track info
+      const script = `
+        tell application "Spotify"
+          if it is running then
+            set isPlaying to player state as string
+            if isPlaying is "playing" then
+              set currentArtist to artist of current track as string
+              set currentTrack to name of current track as string
+              return "{\\"artist\\":\\"" & currentArtist & "\\",\\"title\\":\\"" & currentTrack & "\\",\\"isPlaying\\":true}"
+            else
+              return "{\\"isPlaying\\":false}"
+            end if
+          else
+            return "{\\"isPlaying\\":false}"
+          end if
+        end tell
+      `;
+      
+      const result = execSync(`osascript -e '${script}'`).toString().trim();
+      try {
+        resolve(JSON.parse(result));
+      } catch (e) {
+        console.error("Failed to parse Spotify data:", result);
+        resolve({ isPlaying: false });
+      }
+    } catch (error) {
+      console.error("Error getting Spotify data:", error);
+      resolve({ isPlaying: false });
+    }
+  });
 }
 
