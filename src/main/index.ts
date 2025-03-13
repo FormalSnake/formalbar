@@ -108,7 +108,8 @@ app.whenReady().then(() => {
     }
   });
 
-  ipcMain.emit('refresh-data');
+  // This won't work because we need to send to renderer processes
+  // ipcMain.emit('refresh-data');
 
   if (refresh) {
     console.log("Refreshing existing instances...");
@@ -117,6 +118,9 @@ app.whenReady().then(() => {
   }
 
   createWindows();
+  
+  // Set up a periodic refresh (every 5 seconds)
+  setInterval(refreshAllInstances, 5000);
 
   app.on('activate', function() {
     if (BrowserWindow.getAllWindows().length === 0) createWindows();
@@ -133,6 +137,12 @@ function refreshAllInstances() {
       console.warn("Skipped destroyed window");
     }
   });
+}
+
+// Add a function to refresh data after workspace switch
+function refreshAfterAction() {
+  // Give the system a moment to update state
+  setTimeout(() => refreshAllInstances(), 500);
 }
 
 app.on('window-all-closed', () => {
@@ -218,5 +228,8 @@ function switchSpace(space: string): void {
   childProcess.stdout.on('data', (data: any) => {
     console.log(`stdout: ${data}`);
   });
+  
+  // Refresh data after switching workspace
+  refreshAfterAction();
 }
 

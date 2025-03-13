@@ -18,9 +18,9 @@ function App(): JSX.Element {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  const switchWorkspace = (workspace: Workspace) => {
-    window.electron.ipcRenderer.invoke('switch-space', workspace.workspace);
-    fetchWorkspaces()
+  const switchWorkspace = async (workspace: Workspace) => {
+    await window.electron.ipcRenderer.invoke('switch-space', workspace.workspace);
+    // Don't call fetchWorkspaces here - the main process will trigger a refresh
   }
 
   const fetchWorkspaces = async (): Promise<void> => {
@@ -78,24 +78,20 @@ function App(): JSX.Element {
 
     if (!window.electron || !window.electron.ipcRenderer) {
       console.error("Electron IPC Renderer not available!");
-      alert("Electron IPC Renderer not available!");
       return;
     }
 
     const refreshListener = () => {
       console.log("Received refresh event from main process ✅");
-      alert("Refreshing");
       fetchWorkspaces();
       getWindow();
     };
 
     console.log("Registering refresh-data listener...");
-    alert("Registering refresh-data listener...");
     window.electron.ipcRenderer.on("refresh-data", refreshListener);
 
     return () => {
       console.log("Removing refresh-data listener...");
-      alert("Removing refresh-data listener...");
       window.electron.ipcRenderer.removeListener("refresh-data", refreshListener);
     };
   }, []);
