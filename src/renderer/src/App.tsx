@@ -24,14 +24,12 @@ function App(): JSX.Element {
   }
 
   const fetchWorkspaces = async (): Promise<void> => {
-    // if workspaces is not empty, return
-    if (workspaces.length > 0) {
-      const activeSpace = await window.electron.ipcRenderer.invoke('get-active-space');
-      setActiveSpace(activeSpace);
-      return;
-    }
     try {
-      setLoading(true);
+      // Only show loading state on initial load, not during refreshes
+      if (workspaces.length === 0) {
+        setLoading(true);
+      }
+      
       setError(null);
       const result = await window.electron.ipcRenderer.invoke('get-spaces');
       const activeSpace = await window.electron.ipcRenderer.invoke('get-active-space');
@@ -60,14 +58,12 @@ function App(): JSX.Element {
 
   const getWindow = async () => {
     try {
+      // Don't set loading state during window refresh
       const result = await window.electron.ipcRenderer.invoke("get-active-window");
       setActiveWindow(result.map(normalizeWindow));
     } catch (err) {
-      setError(`Failed to fetch active window: ${err instanceof Error ? err.message : String(err)}`);
       console.error("Error fetching active window:", err);
       setActiveWindow([]);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -81,10 +77,27 @@ function App(): JSX.Element {
       return;
     }
 
-    const refreshListener = () => {
+    const refreshListener = async () => {
       console.log("Received refresh event from main process ✅");
-      fetchWorkspaces();
-      getWindow();
+      
+      try {
+        // Fetch data without showing loading state
+        const spaces = await window.electron.ipcRenderer.invoke('get-spaces');
+        const activeSpace = await window.electron.ipcRenderer.invoke('get-active-space');
+        const windowResult = await window.electron.ipcRenderer.invoke("get-active-window");
+        
+        // Only update state if we got valid data
+        if (Array.isArray(spaces)) {
+          setWorkspaces(spaces);
+          setActiveSpace(activeSpace);
+        }
+        
+        if (Array.isArray(windowResult)) {
+          setActiveWindow(windowResult.map(normalizeWindow));
+        }
+      } catch (err) {
+        console.error("Error during refresh:", err);
+      }
     };
 
     console.log("Registering refresh-data listener...");
