@@ -20,8 +20,11 @@ function App(): JSX.Element {
   const [error, setError] = useState<string | null>(null);
 
   const switchWorkspace = async (workspace: Workspace) => {
+    // Update UI immediately for better responsiveness
+    setActiveSpace([workspace]);
+    
+    // Then invoke the actual space switch
     await window.electron.ipcRenderer.invoke('switch-space', workspace.workspace);
-    // Don't call fetchWorkspaces here - the main process will trigger a refresh
   }
 
   const fetchWorkspaces = async (): Promise<void> => {
