@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button"
 import { useEffect, useState } from "react"
 import { SpotifyNowPlaying } from "@/components/SpotifyNowPlaying"
 import { Clock } from "@/components/Clock"
+import { BatteryIndicator } from "@/components/Battery"
 
 interface Workspace {
   workspace: string;
@@ -171,6 +172,7 @@ function App(): JSX.Element {
           {/* Right section */}
           <div className="ml-auto flex items-center gap-x-2">
             <SpotifyNowPlaying />
+            <BatteryIndicator />
           </div>
         </>
       )}
