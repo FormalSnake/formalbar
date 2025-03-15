@@ -27,18 +27,21 @@ export function ErrorAlert({ message, onClose }: ErrorAlertProps): JSX.Element {
         top: '0',
         left: '0',
         right: '0',
-        backgroundColor: 'rgba(220, 38, 38, 0.9)',
+        backgroundColor: 'rgba(220, 38, 38, 0.95)',
         color: 'white',
-        padding: '8px 16px',
+        padding: '12px 16px',
         zIndex: 9999,
-        fontSize: '14px',
+        fontSize: '16px',
         textAlign: 'center',
         display: 'flex',
         justifyContent: 'space-between',
-        alignItems: 'center'
+        alignItems: 'center',
+        boxShadow: '0 2px 10px rgba(0, 0, 0, 0.3)',
+        height: 'auto',
+        minHeight: '40px'
       }}
     >
-      <span>Error: {message}</span>
+      <span style={{ fontWeight: 'bold', maxWidth: '90%', overflow: 'auto' }}>Error: {message}</span>
       <button 
         onClick={() => {
           setVisible(false);
@@ -49,7 +52,9 @@ export function ErrorAlert({ message, onClose }: ErrorAlertProps): JSX.Element {
           border: 'none',
           color: 'white',
           cursor: 'pointer',
-          fontSize: '16px'
+          fontSize: '20px',
+          fontWeight: 'bold',
+          padding: '0 8px'
         }}
       >
         ×

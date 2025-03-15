@@ -15,6 +15,7 @@ function findAerospaceBinary(): string | null {
   try {
     // Try to find aerospace in common locations
     const possiblePaths = [
+      '/etc/profiles/per-user/kyandesutter/bin/aerospace', // User-specific location
       '/usr/local/bin/aerospace',
       '/opt/homebrew/bin/aerospace',
       '/usr/bin/aerospace',
@@ -22,6 +23,8 @@ function findAerospaceBinary(): string | null {
       // Add the path from $PATH
       ...process.env.PATH?.split(':').map(p => join(p, 'aerospace')) || []
     ];
+    
+    console.log("Searching for aerospace binary in these paths:", possiblePaths);
     
     for (const path of possiblePaths) {
       if (existsSync(path)) {
@@ -39,6 +42,21 @@ function findAerospaceBinary(): string | null {
       }
     } catch (error) {
       console.error("Error finding aerospace with which:", error);
+    }
+    
+    // Try to find it using the current user's name
+    try {
+      const username = process.env.USER || process.env.USERNAME;
+      if (username) {
+        const userSpecificPath = `/etc/profiles/per-user/${username}/bin/aerospace`;
+        console.log(`Checking user-specific path: ${userSpecificPath}`);
+        if (existsSync(userSpecificPath)) {
+          console.log(`Found aerospace binary at user-specific path: ${userSpecificPath}`);
+          return userSpecificPath;
+        }
+      }
+    } catch (error) {
+      console.error("Error checking user-specific path:", error);
     }
     
     console.error("Could not find aerospace binary");
@@ -112,6 +130,26 @@ app.whenReady().then(() => {
   aerospacePath = findAerospaceBinary();
   if (!aerospacePath) {
     console.error("WARNING: Could not find aerospace binary. Workspace functionality will not work.");
+    
+    // Hardcode the path as a fallback
+    const hardcodedPath = '/etc/profiles/per-user/kyandesutter/bin/aerospace';
+    console.log(`Trying hardcoded path: ${hardcodedPath}`);
+    
+    if (existsSync(hardcodedPath)) {
+      console.log(`Found aerospace at hardcoded path: ${hardcodedPath}`);
+      aerospacePath = hardcodedPath;
+    } else {
+      console.error(`Hardcoded path does not exist: ${hardcodedPath}`);
+      
+      // Send error to all windows once they're created
+      setTimeout(() => {
+        windows.forEach(win => {
+          if (win && !win.isDestroyed()) {
+            win.webContents.send('error', "Aerospace binary not found. Workspace functionality will not work.");
+          }
+        });
+      }, 2000);
+    }
   } else {
     console.log(`Using aerospace binary at: ${aerospacePath}`);
   }
