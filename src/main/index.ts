@@ -4,8 +4,50 @@ import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { spawn } from 'child_process'
 import { execSync } from 'child_process'
+import { existsSync } from 'fs'
 
 let windows: BrowserWindow[] = [];
+
+// Find the full path to the aerospace binary
+let aerospacePath: string | null = null;
+
+function findAerospaceBinary(): string | null {
+  try {
+    // Try to find aerospace in common locations
+    const possiblePaths = [
+      '/usr/local/bin/aerospace',
+      '/opt/homebrew/bin/aerospace',
+      '/usr/bin/aerospace',
+      '/bin/aerospace',
+      // Add the path from $PATH
+      ...process.env.PATH?.split(':').map(p => join(p, 'aerospace')) || []
+    ];
+    
+    for (const path of possiblePaths) {
+      if (existsSync(path)) {
+        console.log(`Found aerospace binary at: ${path}`);
+        return path;
+      }
+    }
+    
+    // Try to find it using which command
+    try {
+      const whichResult = execSync('which aerospace').toString().trim();
+      if (whichResult && existsSync(whichResult)) {
+        console.log(`Found aerospace binary using which: ${whichResult}`);
+        return whichResult;
+      }
+    } catch (error) {
+      console.error("Error finding aerospace with which:", error);
+    }
+    
+    console.error("Could not find aerospace binary");
+    return null;
+  } catch (error) {
+    console.error("Error finding aerospace binary:", error);
+    return null;
+  }
+}
 
 function createWindows(): void {
   // Close existing windows if recreating
@@ -65,6 +107,14 @@ function createWindows(): void {
 
 app.whenReady().then(() => {
   electronApp.setAppUserModelId('com.electron');
+  
+  // Find the aerospace binary path
+  aerospacePath = findAerospaceBinary();
+  if (!aerospacePath) {
+    console.error("WARNING: Could not find aerospace binary. Workspace functionality will not work.");
+  } else {
+    console.log(`Using aerospace binary at: ${aerospacePath}`);
+  }
 
   //const refresh = process.argv.includes('--refresh');
   const refresh = process.env.REFRESH === 'true';
@@ -254,8 +304,13 @@ app.on('window-all-closed', () => {
 
 function runAerospaceCommand() {
   return new Promise((resolve, reject) => {
-    const childProcess = spawn('aerospace', ['list-workspaces', '--all', '--json'], {
-      stdio: ['ignore', 'pipe', 'pipe']
+    if (!aerospacePath) {
+      return reject(new Error("Aerospace binary not found"));
+    }
+    
+    const childProcess = spawn(aerospacePath, ['list-workspaces', '--all', '--json'], {
+      stdio: ['ignore', 'pipe', 'pipe'],
+      env: { ...process.env }
     });
 
     let stdout = '';
@@ -277,8 +332,13 @@ function runAerospaceCommand() {
 
 function getActiveSpace() {
   return new Promise((resolve, reject) => {
-    const childProcess = spawn('aerospace', ['list-workspaces', '--focused', '--json'], {
-      stdio: ['ignore', 'pipe', 'pipe']
+    if (!aerospacePath) {
+      return reject(new Error("Aerospace binary not found"));
+    }
+    
+    const childProcess = spawn(aerospacePath, ['list-workspaces', '--focused', '--json'], {
+      stdio: ['ignore', 'pipe', 'pipe'],
+      env: { ...process.env }
     });
 
     let stdout = '';
@@ -300,8 +360,13 @@ function getActiveSpace() {
 
 function getActiveWindow() {
   return new Promise((resolve, reject) => {
-    const childProcess = spawn('aerospace', ['list-windows', '--focused', '--json'], {
-      stdio: ['ignore', 'pipe', 'pipe']
+    if (!aerospacePath) {
+      return reject(new Error("Aerospace binary not found"));
+    }
+    
+    const childProcess = spawn(aerospacePath, ['list-windows', '--focused', '--json'], {
+      stdio: ['ignore', 'pipe', 'pipe'],
+      env: { ...process.env }
     });
 
     let stdout = '';
@@ -322,8 +387,14 @@ function getActiveWindow() {
 }
 
 function switchSpace(space: string): void {
-  const childProcess = spawn('aerospace', ['workspace', space], {
-    stdio: ['ignore', 'pipe', 'pipe']
+  if (!aerospacePath) {
+    console.error("Cannot switch space: Aerospace binary not found");
+    return;
+  }
+  
+  const childProcess = spawn(aerospacePath, ['workspace', space], {
+    stdio: ['ignore', 'pipe', 'pipe'],
+    env: { ...process.env }
   });
 
   childProcess.stdout.on('data', (data: any) => {
