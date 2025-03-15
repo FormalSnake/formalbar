@@ -123,21 +123,29 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(window);
   });
 
-  ipcMain.handle('get-spaces', async () => {
+  ipcMain.handle('get-spaces', async (event) => {
     try {
       return await runAerospaceCommand();
     } catch (error) {
       console.error("Command failed:", error);
-      return { error };
+      // Send error to renderer
+      if (event.sender && !event.sender.isDestroyed()) {
+        event.sender.send('error', error.message || "Failed to get spaces");
+      }
+      return { error: error.message || "Failed to get spaces" };
     }
   });
 
-  ipcMain.handle('get-active-space', async () => {
+  ipcMain.handle('get-active-space', async (event) => {
     try {
       return await getActiveSpace();
     } catch (error) {
       console.error("Command failed:", error);
-      return { error };
+      // Send error to renderer
+      if (event.sender && !event.sender.isDestroyed()) {
+        event.sender.send('error', error.message || "Failed to get active space");
+      }
+      return { error: error.message || "Failed to get active space" };
     }
   });
 
@@ -150,12 +158,16 @@ app.whenReady().then(() => {
     }
   });
 
-  ipcMain.handle('get-active-window', async () => {
+  ipcMain.handle('get-active-window', async (event) => {
     try {
       return await getActiveWindow();
     } catch (error) {
       console.error("Command failed:", error);
-      return { error };
+      // Send error to renderer
+      if (event.sender && !event.sender.isDestroyed()) {
+        event.sender.send('error', error.message || "Failed to get active window");
+      }
+      return { error: error.message || "Failed to get active window" };
     }
   });
 
@@ -305,7 +317,9 @@ app.on('window-all-closed', () => {
 function runAerospaceCommand() {
   return new Promise((resolve, reject) => {
     if (!aerospacePath) {
-      return reject(new Error("Aerospace binary not found"));
+      const error = new Error("Aerospace binary not found");
+      console.error(error);
+      return reject(error);
     }
     
     const childProcess = spawn(aerospacePath, ['list-workspaces', '--all', '--json'], {
@@ -318,13 +332,32 @@ function runAerospaceCommand() {
 
     childProcess.stdout.on('data', (data) => { stdout += data.toString(); });
     childProcess.stderr.on('data', (data) => { stderr += data.toString(); });
-    childProcess.on('error', reject);
+    childProcess.on('error', (err) => {
+      console.error("Aerospace command error:", err);
+      reject(err);
+    });
     childProcess.on('exit', (code) => {
       if (code === 0) {
-        try { resolve(JSON.parse(stdout.trim())); }
-        catch (error) { resolve(stdout.trim()); }
+        try { 
+          const trimmedOutput = stdout.trim();
+          console.log("Aerospace command output:", trimmedOutput);
+          if (!trimmedOutput) {
+            const error = new Error("Empty response from aerospace command");
+            console.error(error);
+            return reject(error);
+          }
+          const parsed = JSON.parse(trimmedOutput);
+          resolve(parsed); 
+        }
+        catch (error) {
+          console.error("Failed to parse aerospace command output:", error);
+          console.error("Raw output:", stdout.trim());
+          reject(new Error(`Invalid response format: ${error.message}`));
+        }
       } else {
-        reject(new Error(`Process exited with code ${code}: ${stderr}`));
+        const error = new Error(`Process exited with code ${code}: ${stderr}`);
+        console.error(error);
+        reject(error);
       }
     });
   });
@@ -333,7 +366,9 @@ function runAerospaceCommand() {
 function getActiveSpace() {
   return new Promise((resolve, reject) => {
     if (!aerospacePath) {
-      return reject(new Error("Aerospace binary not found"));
+      const error = new Error("Aerospace binary not found");
+      console.error(error);
+      return reject(error);
     }
     
     const childProcess = spawn(aerospacePath, ['list-workspaces', '--focused', '--json'], {
@@ -346,13 +381,32 @@ function getActiveSpace() {
 
     childProcess.stdout.on('data', (data) => { stdout += data.toString(); });
     childProcess.stderr.on('data', (data) => { stderr += data.toString(); });
-    childProcess.on('error', reject);
+    childProcess.on('error', (err) => {
+      console.error("Get active space error:", err);
+      reject(err);
+    });
     childProcess.on('exit', (code) => {
       if (code === 0) {
-        try { resolve(JSON.parse(stdout.trim())); }
-        catch (error) { resolve(stdout.trim()); }
+        try { 
+          const trimmedOutput = stdout.trim();
+          console.log("Active space command output:", trimmedOutput);
+          if (!trimmedOutput) {
+            const error = new Error("Empty response from active space command");
+            console.error(error);
+            return reject(error);
+          }
+          const parsed = JSON.parse(trimmedOutput);
+          resolve(parsed); 
+        }
+        catch (error) {
+          console.error("Failed to parse active space output:", error);
+          console.error("Raw output:", stdout.trim());
+          reject(new Error(`Invalid response format: ${error.message}`));
+        }
       } else {
-        reject(new Error(`Process exited with code ${code}: ${stderr}`));
+        const error = new Error(`Process exited with code ${code}: ${stderr}`);
+        console.error(error);
+        reject(error);
       }
     });
   });
@@ -361,7 +415,9 @@ function getActiveSpace() {
 function getActiveWindow() {
   return new Promise((resolve, reject) => {
     if (!aerospacePath) {
-      return reject(new Error("Aerospace binary not found"));
+      const error = new Error("Aerospace binary not found");
+      console.error(error);
+      return reject(error);
     }
     
     const childProcess = spawn(aerospacePath, ['list-windows', '--focused', '--json'], {
@@ -374,13 +430,32 @@ function getActiveWindow() {
 
     childProcess.stdout.on('data', (data) => { stdout += data.toString(); });
     childProcess.stderr.on('data', (data) => { stderr += data.toString(); });
-    childProcess.on('error', reject);
+    childProcess.on('error', (err) => {
+      console.error("Get active window error:", err);
+      reject(err);
+    });
     childProcess.on('exit', (code) => {
       if (code === 0) {
-        try { resolve(JSON.parse(stdout.trim())); }
-        catch (error) { resolve(stdout.trim()); }
+        try { 
+          const trimmedOutput = stdout.trim();
+          console.log("Active window command output:", trimmedOutput);
+          if (!trimmedOutput) {
+            const error = new Error("Empty response from active window command");
+            console.error(error);
+            return reject(error);
+          }
+          const parsed = JSON.parse(trimmedOutput);
+          resolve(parsed); 
+        }
+        catch (error) {
+          console.error("Failed to parse active window output:", error);
+          console.error("Raw output:", stdout.trim());
+          reject(new Error(`Invalid response format: ${error.message}`));
+        }
       } else {
-        reject(new Error(`Process exited with code ${code}: ${stderr}`));
+        const error = new Error(`Process exited with code ${code}: ${stderr}`);
+        console.error(error);
+        reject(error);
       }
     });
   });
